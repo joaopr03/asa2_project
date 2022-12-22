@@ -1,0 +1,111 @@
+#include <vector>
+#include <iostream>
+#include <algorithm> // Sort.
+#include <string.h> // Memset.
+
+using namespace std;
+
+
+class Edge{
+private:
+    int vertice1, vertice2, weigth;
+public:
+    Edge(int v1, int v2, int weight){
+        vertice1 = v1;
+        vertice2 = v2;
+        this->weigth = weight;
+    }
+
+    int getVertice1(){ return vertice1; }
+
+    int getVertice2(){ return vertice2; }
+
+    int getWeight(){ return weigth; }
+
+    bool operator < (const Edge& edge2) const {
+        return( weigth > edge2.weigth);
+    } 
+};
+
+class Graph{
+private:
+    int vertices; // Number of vertices.
+    vector<Edge> edges; // Vector of edges.
+public:
+    Graph(int v){
+        vertices = v;
+    }
+
+    // Function that adds an edge to the vector of edges. 
+    void addEdge(int v1, int v2, int weight){
+        Edge edge(v1,v2,weight);
+        edges.push_back(edge);
+    }
+
+    // Function that searches for the subset of 'i'.
+    int search(int subset[], int i){
+        if(subset[i] == -1)
+            return i;
+        return search(subset,subset[i]);
+    }
+
+    // Function that joins two subsets into a single one.
+    void join(int subset[], int v1, int v2){
+        int v1_set = search(subset,v1);
+        int v2_set = search(subset,v2);
+        subset[v1_set] = v2_set;
+    }
+
+    // Function that searches for a minimal spanning tree 
+    // for a connected graph with weights.
+    void getMaixmalSpannigTree(){
+        vector<Edge> tree;
+        int size_edges = edges.size();
+
+        // Sort the edges for the minimal weight.
+        sort(edges.begin(),edges.end());
+
+        // Allocate memory to create 'V' subsets.
+        int * subset = new int[vertices];
+
+        // Inicialize all the subsets as subtes of a sinle element.
+        memset(subset, -1, sizeof(int) * vertices);
+
+        for (int i = 0; i < size_edges; i++){
+            int v1 = search(subset, edges[i].getVertice1());
+            int v2 = search(subset, edges[i].getVertice2());
+
+            if(v1 != v2){
+                // If v1 is different from v2 then they do not form a cycle.
+                tree.push_back(edges[i]);
+                join(subset,v1,v2);
+            }
+        }
+        int size_tree = tree.size();
+        for(int i = 0; i < size_tree; i++){
+            int v1 = tree[i].getVertice1();
+            int v2 = tree[i].getVertice2();
+            cout << "(" << v1 << "," << v2 << ") = " << tree[i].getWeight() << endl;
+        } 
+
+    }
+
+};
+
+int main(){
+
+    // Create the graph.
+
+    Graph g(5);
+
+    // Add the edges.
+
+    g.addEdge(0,1,7);
+    g.addEdge(0,3,5);
+    g.addEdge(1,3,9);
+    g.addEdge(2,4,5);
+
+    g.getMaixmalSpannigTree();
+
+    return 0;
+}
