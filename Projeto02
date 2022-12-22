@@ -1,111 +1,151 @@
 #include <vector>
 #include <iostream>
-#include <algorithm> // Sort.
-#include <string.h> // Memset.
+#include <algorithm> 
+#include <string.h> 
 
 using namespace std;
 
+int n_edges;
+int n_bows;
+int n_max_trades = 0;
 
-class Edge{
-private:
-    int vertice1, vertice2, weigth;
-public:
-    Edge(int v1, int v2, int weight){
-        vertice1 = v1;
-        vertice2 = v2;
-        this->weigth = weight;
-    }
+class Edge {
 
-    int getVertice1(){ return vertice1; }
+    // Atributes of the class edge
+    private:
+        int source;
+        int destiny;
+        int weight;
 
-    int getVertice2(){ return vertice2; }
-
-    int getWeight(){ return weigth; }
-
-    bool operator < (const Edge& edge2) const {
-        return( weigth > edge2.weigth);
-    } 
-};
-
-class Graph{
-private:
-    int vertices; // Number of vertices.
-    vector<Edge> edges; // Vector of edges.
-public:
-    Graph(int v){
-        vertices = v;
-    }
-
-    // Function that adds an edge to the vector of edges. 
-    void addEdge(int v1, int v2, int weight){
-        Edge edge(v1,v2,weight);
-        edges.push_back(edge);
-    }
-
-    // Function that searches for the subset of 'i'.
-    int search(int subset[], int i){
-        if(subset[i] == -1)
-            return i;
-        return search(subset,subset[i]);
-    }
-
-    // Function that joins two subsets into a single one.
-    void join(int subset[], int v1, int v2){
-        int v1_set = search(subset,v1);
-        int v2_set = search(subset,v2);
-        subset[v1_set] = v2_set;
-    }
-
-    // Function that searches for a minimal spanning tree 
-    // for a connected graph with weights.
-    void getMaixmalSpannigTree(){
-        vector<Edge> tree;
-        int size_edges = edges.size();
-
-        // Sort the edges for the minimal weight.
-        sort(edges.begin(),edges.end());
-
-        // Allocate memory to create 'V' subsets.
-        int * subset = new int[vertices];
-
-        // Inicialize all the subsets as subtes of a sinle element.
-        memset(subset, -1, sizeof(int) * vertices);
-
-        for (int i = 0; i < size_edges; i++){
-            int v1 = search(subset, edges[i].getVertice1());
-            int v2 = search(subset, edges[i].getVertice2());
-
-            if(v1 != v2){
-                // If v1 is different from v2 then they do not form a cycle.
-                tree.push_back(edges[i]);
-                join(subset,v1,v2);
-            }
+    public:
+        Edge(int src, int des, int wght){
+            source = src;
+            destiny = des;
+            weight = wght;
         }
-        int size_tree = tree.size();
-        for(int i = 0; i < size_tree; i++){
-            int v1 = tree[i].getVertice1();
-            int v2 = tree[i].getVertice2();
-            cout << "(" << v1 << "," << v2 << ") = " << tree[i].getWeight() << endl;
-        } 
 
-    }
+        // Getters for the class edge
+        int getSource(){ 
+            return source; 
+        }
 
+        int getDestiny(){ 
+            return destiny; 
+        }
+
+        int getWeight(){ 
+            return weight; 
+        }
+
+        bool operator <(const Edge& edge) const {
+            return !(weight < edge.weight);
+        }
 };
+
+class Graph {
+
+    // Atributes of the class graph
+    private:
+        int vertices; 
+        vector<Edge> edges; 
+
+    public:
+        Graph(int v){
+            vertices = v;
+        }
+
+        void addEdge(int v1, int v2, int w){
+            Edge edge(v1, v2, w);
+            edges.push_back(edge);
+        }
+
+        // From now on, there is an implementation of the Kruskal's algorithm,
+        // which finds the minimum spanning tree of an undirected weighted
+        // graph. Instead of searching the lowest weight edges, which is
+        // the most common use for this algorith, we implemented it to get
+        // those who have the most weight, in order to get the shorter
+        // path with the most trades possible between regions.
+
+        int search(int subset[], int i){
+            if(subset[i] == -1)
+                return i;
+            return search(subset, subset[i]);
+        }
+
+        void join(int subset[], int v1, int v2){
+            int v1_set = search(subset,v1);
+            int v2_set = search(subset,v2);
+            subset[v1_set] = v2_set;
+        }
+
+        void getMaxSpannigTree(){
+            vector<Edge> tree;
+            int size_edges = edges.size();
+
+            sort(edges.begin(), edges.end());
+
+            int * subset = new int[vertices];
+
+            memset(subset, -1, sizeof(int) * vertices);
+
+            for (int i = 0; i < size_edges; i++){
+                int v1 = search(subset, edges[i].getSource());
+                int v2 = search(subset, edges[i].getDestiny());
+
+                if(v1 != v2){
+                    tree.push_back(edges[i]);
+                    n_max_trades += edges[i].getWeight();
+                    join(subset,v1,v2);
+                }
+            }
+            /* int size_tree = tree.size();
+            for(int i = 0; i < size_tree; i++){
+                int v1 = tree[i].getSource();
+                int v2 = tree[i].getDestiny();
+                cout << "(" << v1 << "," << v2 << ") = " << tree[i].getWeight() << endl;
+            }  */
+        }
+};
+
+void readInput() {
+    cin >> n_edges;
+    cin >> n_bows;
+    Graph graph = Graph(n_edges);
+    for(int i = 0; i < n_bows; i++){
+        int s, d, w;
+        cin >> s;
+        cin.ignore();
+        cin >> d;
+        cin.ignore();
+        cin >> w;
+        graph.addEdge(s, d, w);
+    }
+} 
 
 int main(){
 
     // Create the graph.
 
-    Graph g(5);
+    Graph g(8);
 
     // Add the edges.
 
-    g.addEdge(0,1,7);
-    g.addEdge(0,3,5);
-    g.addEdge(1,3,9);
-    g.addEdge(2,4,5);
+    g.addEdge(1, 2, 2);
+    g.addEdge(1, 5, 4);
+    g.addEdge(1, 8, 3);
+    g.addEdge(2, 6, 8);
+    g.addEdge(2, 5, 4);
+    g.addEdge(2, 8, 9);
+    g.addEdge(4, 3, 1);
+    g.addEdge(3, 7, 3);
+    g.addEdge(4, 7, 4);
+    g.addEdge(5, 6, 8);
+    g.addEdge(6, 8, 5);
 
-    g.getMaixmalSpannigTree();
+    g.getMaxSpannigTree(); 
+
+    cout << n_max_trades << endl;
 
     return 0;
 }
+
