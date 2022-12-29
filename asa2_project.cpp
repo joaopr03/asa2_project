@@ -84,7 +84,6 @@ class Graph {
         }
 
         void getMaxSpannigTree() {
-            vector<Edge> tree;
             int size_edges = edges.size();
 
             sort(edges.begin(), edges.end(), compare);
@@ -97,7 +96,6 @@ class Graph {
                 int v2 = search(subset, edges[i].getDestiny());
 
                 if(v1 != v2){
-                    tree.push_back(edges[i]);
                     n_max_trades += edges[i].getWeight();
                     join(subset,v1,v2);
                 }
@@ -107,15 +105,14 @@ class Graph {
 
 // Function that reads the input and creates the graph
 Graph readInput() {
-    cin >> n_edges >> n_bows;
+    scanf("%d", &n_edges);
+    scanf("%d", &n_bows);
     Graph graph = Graph(n_edges);
     for(int i = 0; i < n_bows; i++){
         int s, d, w;
-        cin >> s;
-        cin.ignore();
-        cin >> d;
-        cin.ignore();
-        cin >> w;
+        scanf("%d", &s);
+        scanf("%d", &d);
+        scanf("%d", &w);
         graph.addEdge(s, d, w);
     }
 
